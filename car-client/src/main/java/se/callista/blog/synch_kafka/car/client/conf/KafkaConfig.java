@@ -2,6 +2,7 @@ package se.callista.blog.synch_kafka.car.client.conf;
 
 import java.util.HashMap;
 import java.util.Map;
+
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -16,11 +17,12 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaAdmin;
 import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
-import org.springframework.kafka.listener.config.ContainerProperties;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
-import se.callista.blog.synch_kafka.car.controller.RequestReply;
+
+import se.callista.blog.synch_kafka.car.model.Car;
 import se.callista.blog.synch_kafka.request_reply_util.CompletableFutureReplyingKafkaTemplate;
 
 @Configuration
@@ -61,9 +63,8 @@ public class KafkaConfig {
   }
 
   @Bean
-  public CompletableFutureReplyingKafkaTemplate<String, RequestReply, RequestReply> replyKafkaTemplate()
-      throws Exception {
-    CompletableFutureReplyingKafkaTemplate<String, RequestReply, RequestReply> requestReplyKafkaTemplate =
+  public CompletableFutureReplyingKafkaTemplate<String, String, Car> replyKafkaTemplate() {
+    CompletableFutureReplyingKafkaTemplate<String, String, Car> requestReplyKafkaTemplate =
         new CompletableFutureReplyingKafkaTemplate<>(requestProducerFactory(),
             replyListenerContainer());
     requestReplyKafkaTemplate.setDefaultTopic(requestTopic);
@@ -71,20 +72,20 @@ public class KafkaConfig {
   }
 
   @Bean
-  public ProducerFactory<String, RequestReply> requestProducerFactory() {
+  public ProducerFactory<String, String> requestProducerFactory() {
     return new DefaultKafkaProducerFactory<>(producerConfigs());
   }
 
   @Bean
-  public ConsumerFactory<String, RequestReply> replyConsumerFactory() {
-    JsonDeserializer<RequestReply> jsonDeserializer = new JsonDeserializer<>();
-    jsonDeserializer.addTrustedPackages(RequestReply.class.getPackage().getName());
+  public ConsumerFactory<String, Car> replyConsumerFactory() {
+    JsonDeserializer<Car> jsonDeserializer = new JsonDeserializer<>();
+    jsonDeserializer.addTrustedPackages(Car.class.getPackage().getName());
     return new DefaultKafkaConsumerFactory<>(consumerConfigs(), new StringDeserializer(),
         jsonDeserializer);
   }
 
   @Bean
-  public KafkaMessageListenerContainer<String, RequestReply> replyListenerContainer() {
+  public KafkaMessageListenerContainer<String, Car> replyListenerContainer() {
     ContainerProperties containerProperties = new ContainerProperties(replyTopic);
     return new KafkaMessageListenerContainer<>(replyConsumerFactory(), containerProperties);
   }

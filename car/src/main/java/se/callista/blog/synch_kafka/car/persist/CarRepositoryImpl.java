@@ -14,7 +14,7 @@ public class CarRepositoryImpl implements CarRepository {
   @PostConstruct
   private void initCars() {
     cars.put("12345678901234567", new Car("12345678901234567", "ABC123"));
-    cars.put("76543210987654321", new Car("12345678901234567", "ZYX987"));
+    cars.put("76543210987654321", new Car("76543210987654321", "ZYX987"));
   }
 
   @Override

@@ -2,6 +2,7 @@ package se.callista.blog.synch_kafka.car.conf;
 
 import java.util.HashMap;
 import java.util.Map;
+
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -22,8 +23,9 @@ import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
+
 import se.callista.blog.synch_kafka.car.controller.CarController;
-import se.callista.blog.synch_kafka.car.controller.RequestReply;
+import se.callista.blog.synch_kafka.car.model.Car;
 
 @Configuration
 @EnableKafka
@@ -45,7 +47,6 @@ public class KafkaConfig {
     props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
     props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
     props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
-
     return props;
   }
 
@@ -55,21 +56,18 @@ public class KafkaConfig {
     props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
     props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
     props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
-
     return props;
   }
 
   @Bean
-  public ConsumerFactory<String, RequestReply> requestConsumerFactory() {
-    JsonDeserializer<RequestReply> jsonDeserializer = new JsonDeserializer<>();
-    jsonDeserializer.addTrustedPackages(RequestReply.class.getPackage().getName());
+  public ConsumerFactory<String, String> requestConsumerFactory() {
     return new DefaultKafkaConsumerFactory<>(consumerConfigs(), new StringDeserializer(),
-        jsonDeserializer);
+        new JsonDeserializer<String>());
   }
 
   @Bean
-  public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, RequestReply>> requestReplyListenerContainerFactory() {
-    ConcurrentKafkaListenerContainerFactory<String, RequestReply> factory =
+  public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, String>> requestReplyListenerContainerFactory() {
+    ConcurrentKafkaListenerContainerFactory<String, String> factory =
         new ConcurrentKafkaListenerContainerFactory<>();
     factory.setConsumerFactory(requestConsumerFactory());
     factory.setReplyTemplate(replyTemplate());
@@ -77,12 +75,12 @@ public class KafkaConfig {
   }
 
   @Bean
-  public ProducerFactory<String, RequestReply> replyProducerFactory() {
+  public ProducerFactory<String, Car> replyProducerFactory() {
     return new DefaultKafkaProducerFactory<>(producerConfigs());
   }
 
   @Bean
-  public KafkaTemplate<String, RequestReply> replyTemplate() {
+  public KafkaTemplate<String, Car> replyTemplate() {
     return new KafkaTemplate<>(replyProducerFactory());
   }
 

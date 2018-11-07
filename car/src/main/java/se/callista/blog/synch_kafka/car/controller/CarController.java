@@ -17,12 +17,10 @@ public class CarController {
 
   @KafkaListener(topics = "${kafka.topic.car.request}", containerFactory = "requestReplyListenerContainerFactory")
   @SendTo()
-  public RequestReply receive(RequestReply requestReply) {
-    String vin = (String) requestReply.getRequest();
+  public Car receive(String vin) {
     LOGGER.info("received request for VIN {} ", vin);
     Car car = repository.getCar(vin);
-    RequestReply reply = RequestReply.reply(car);
     LOGGER.info("sending reply {} ", car);
-    return reply;
+    return car;
   }
 }

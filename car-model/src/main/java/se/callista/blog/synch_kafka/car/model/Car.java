@@ -5,7 +5,7 @@ public class Car {
   private String vin;
   private String regNo;
 
-  public Car() {};
+  public Car() {}
 
   public Car(String vin, String regNo) {
     super();
@@ -56,12 +56,12 @@ public class Car {
       if (other.regNo != null)
         return false;
     } else if (!regNo.equals(other.regNo))
-      return false;
+        return false;
     if (vin == null) {
       if (other.vin != null)
         return false;
     } else if (!vin.equals(other.vin))
-      return false;
+        return false;
     return true;
   }
 

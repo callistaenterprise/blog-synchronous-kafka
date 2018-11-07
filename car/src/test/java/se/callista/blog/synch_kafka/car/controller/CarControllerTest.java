@@ -12,10 +12,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.kafka.listener.MessageListenerContainer;
-import org.springframework.kafka.test.rule.KafkaEmbedded;
+import org.springframework.kafka.test.rule.EmbeddedKafkaRule;
 import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.test.context.junit4.SpringRunner;
-import com.fasterxml.jackson.databind.ObjectMapper;
+
 import se.callista.blog.synch_kafka.car.model.Car;
 import se.callista.blog.synch_kafka.car.persist.CarRepository;
 import se.callista.blog.synch_kafka.request_reply_util.CompletableFutureReplyingKafkaTemplate;
@@ -25,10 +25,7 @@ import se.callista.blog.synch_kafka.request_reply_util.CompletableFutureReplying
 public class CarControllerTest {
 
   @Autowired
-  private CompletableFutureReplyingKafkaTemplate<String,RequestReply,RequestReply> replyKafkaTemplate;
-
-  @Autowired
-  private ObjectMapper objectMapper;
+  private CompletableFutureReplyingKafkaTemplate<String,String,Car> replyKafkaTemplate;
 
   @Autowired
   private KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry;
@@ -37,11 +34,11 @@ public class CarControllerTest {
   private CarRepository repository;
 
   @ClassRule
-  public static KafkaEmbedded embeddedKafka = new KafkaEmbedded(1, true, "car.request", "car.reply");
+  public static EmbeddedKafkaRule embeddedKafkaRule = new EmbeddedKafkaRule(1, true, "car.request", "car.reply");
 
   @BeforeClass
   public static void setUpBeforeClass() {
-      System.setProperty("spring.kafka.bootstrap-servers", embeddedKafka.getBrokersAsString());
+      System.setProperty("spring.kafka.bootstrap-servers", embeddedKafkaRule.getEmbeddedKafka().getBrokersAsString());
   }
 
   @Before
@@ -50,7 +47,7 @@ public class CarControllerTest {
     for (MessageListenerContainer messageListenerContainer : kafkaListenerEndpointRegistry
         .getListenerContainers()) {
       ContainerTestUtils.waitForAssignment(messageListenerContainer,
-          embeddedKafka.getPartitionsPerTopic());
+          embeddedKafkaRule.getEmbeddedKafka().getPartitionsPerTopic());
     }
   }
 
@@ -58,9 +55,7 @@ public class CarControllerTest {
   public void testRequestResponse() throws Exception {
     Car car = new Car("vin", "plate");
     Mockito.when(repository.getCar("vin")).thenReturn(car);
-    RequestReply request = RequestReply.request("vin");
-    RequestReply reply = replyKafkaTemplate.sendAndReceiveDefault(request).get();
-    Car actualCar = objectMapper.convertValue(reply.getReply(), Car.class);
+    Car actualCar = replyKafkaTemplate.sendAndReceiveDefault("vin").get();
     Assert.assertEquals(car, actualCar);
   }
 

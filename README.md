@@ -4,7 +4,7 @@ Request-Response, it may be necessary to implement synchronous semantics on top 
 
 ## Project layout
 
-The example is split in two projects: **car** provides a car service, while **car-client** provides a rest api to display car information. The **car-model** contains some common types, while the **kafka-request-reply-util** contains higher-level abstractions on top of Spring Kafka.
+The example is split in two projects: **car** provides a car service, while **car-client** provides a rest api to display car information. The **car-model** contains a common type, while the **kafka-request-reply-util** contains higher-level abstractions on top of Spring Kafka.
 
 ### Running the example
 
