@@ -18,14 +18,14 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import se.callista.blog.synch_kafka.car.model.Car;
 import se.callista.blog.synch_kafka.car.persist.CarRepository;
-import se.callista.blog.synch_kafka.request_reply_util.CompletableFutureReplyingKafkaTemplate;
+import se.callista.blog.synch_kafka.request_reply_util.CompletableFutureReplyingKafkaOperations;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class CarControllerTest {
 
   @Autowired
-  private CompletableFutureReplyingKafkaTemplate<String,String,Car> replyKafkaTemplate;
+  private CompletableFutureReplyingKafkaOperations<String, String, Car> replyKafkaTemplate;
 
   @Autowired
   private KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry;
@@ -55,7 +55,7 @@ public class CarControllerTest {
   public void testRequestResponse() throws Exception {
     Car car = new Car("vin", "plate");
     Mockito.when(repository.getCar("vin")).thenReturn(car);
-    Car actualCar = replyKafkaTemplate.sendAndReceiveDefault("vin").get();
+    Car actualCar = replyKafkaTemplate.requestReplyDefault("vin").get();
     Assert.assertEquals(car, actualCar);
   }
 

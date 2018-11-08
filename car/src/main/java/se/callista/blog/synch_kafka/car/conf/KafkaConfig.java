@@ -40,6 +40,9 @@ public class KafkaConfig {
   @Value("${kafka.topic.car.request}")
   private String requestTopic;
 
+  @Value("${kafka.request-reply.timeout-ms}")
+  private Long replyTimeout;
+
   @Bean
   public Map<String, Object> consumerConfigs() {
     Map<String, Object> props = new HashMap<>();
@@ -98,6 +101,8 @@ public class KafkaConfig {
 
   @Bean
   public NewTopic requestTopic() {
-    return new NewTopic(requestTopic, 2, (short) 2);
+    Map<String, String> configs = new HashMap<>();
+    configs.put("retention.ms", replyTimeout.toString());
+    return new NewTopic(requestTopic, 2, (short) 2).configs(configs);
   }
 }

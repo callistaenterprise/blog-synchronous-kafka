@@ -23,6 +23,7 @@ import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 
 import se.callista.blog.synch_kafka.car.model.Car;
+import se.callista.blog.synch_kafka.request_reply_util.CompletableFutureReplyingKafkaOperations;
 import se.callista.blog.synch_kafka.request_reply_util.CompletableFutureReplyingKafkaTemplate;
 
 @Configuration
@@ -40,6 +41,9 @@ public class KafkaConfig {
 
   @Value("${kafka.topic.car.reply}")
   private String replyTopic;
+
+  @Value("${kafka.request-reply.timeout-ms}")
+  private Long replyTimeout;
 
   @Bean
   public Map<String, Object> consumerConfigs() {
@@ -63,11 +67,12 @@ public class KafkaConfig {
   }
 
   @Bean
-  public CompletableFutureReplyingKafkaTemplate<String, String, Car> replyKafkaTemplate() {
+  public CompletableFutureReplyingKafkaOperations<String, String, Car> replyKafkaTemplate() {
     CompletableFutureReplyingKafkaTemplate<String, String, Car> requestReplyKafkaTemplate =
         new CompletableFutureReplyingKafkaTemplate<>(requestProducerFactory(),
             replyListenerContainer());
     requestReplyKafkaTemplate.setDefaultTopic(requestTopic);
+    requestReplyKafkaTemplate.setReplyTimeout(replyTimeout);
     return requestReplyKafkaTemplate;
   }
 
@@ -99,7 +104,9 @@ public class KafkaConfig {
 
   @Bean
   public NewTopic replyTopic() {
-    return new NewTopic(replyTopic, 2, (short) 2);
+    Map<String, String> configs = new HashMap<>();
+    configs.put("retention.ms", replyTimeout.toString());
+    return new NewTopic(replyTopic, 2, (short) 2).configs(configs);
   }
 
 }

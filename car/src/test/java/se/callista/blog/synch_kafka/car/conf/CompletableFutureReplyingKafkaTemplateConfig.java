@@ -15,6 +15,7 @@ import org.springframework.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 
 import se.callista.blog.synch_kafka.car.model.Car;
+import se.callista.blog.synch_kafka.request_reply_util.CompletableFutureReplyingKafkaOperations;
 import se.callista.blog.synch_kafka.request_reply_util.CompletableFutureReplyingKafkaTemplate;
 
 @Configuration
@@ -31,7 +32,7 @@ public class CompletableFutureReplyingKafkaTemplateConfig {
   private KafkaConfig kafkaConfig;
 
   @Bean
-  public CompletableFutureReplyingKafkaTemplate<String, String, Car> replyKafkaTemplate() {
+  public CompletableFutureReplyingKafkaOperations<String, String, Car> replyKafkaTemplate() {
     CompletableFutureReplyingKafkaTemplate<String, String, Car> requestReplyKafkaTemplate =
         new CompletableFutureReplyingKafkaTemplate<>(requestProducerFactory(),
             replyListenerContainer());

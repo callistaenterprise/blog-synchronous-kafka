@@ -13,3 +13,6 @@ kafka:
     car:
       request: car.request
       reply: car.reply
+  request-reply:
+    timeout-ms: 1000
+      
